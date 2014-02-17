@@ -22,22 +22,34 @@ var server = http.createServer(function (request, response) {
     response.end();
   }
   console.log("Processing request (" + (request.headers["x-forwareded-for"] ? request.headers["x-forwareded-for"] : request.connection.remoteAddress) + ") for: " + request_url.href);
+  // Health Check Route
   if (request_url.path == "/health_check") {
     health_check_count += 1;
+    writeVanillaHeader(response);
+    response.end("SUCCESS\n");
   };
+  // Favicon Route
   if (request_url.path == "/favicon.ico") {
-  response.writeHead(200, {"Content-Type": "image/x-icon"});
-  fs.readFile('./favicon.ico', function (err,data) {
-    if (err) throw err;
-    response.end(data, 'binary');
-  });
-  return;
-  
-    
+    writeVanillaHeader(response, "image/x-icon");
+    fs.readFile('./favicon.ico', function (err,data) {
+      if (err) throw err;
+      response.end(data, 'binary');
+    });
+    return;
   };
-  response.writeHead(200, {"Content-Type": "text/plain"});
+  // About Route
+  if (request_url.path == "/about") {
+    writeVanillaHeader(response);
+    response.end("About (placeholder)\n"); 
+  };
+  writeVanillaHeader(response);
   response.end("Hello World\n");
 });
+
+function writeVanillaHeader(response, content_type) {
+  content_type = content_type || "text/plain";
+  response.writeHead(200, {"Content-Type": content_type});
+}
 
 // listen on port_dev for development
 server.listen(port_dev);
