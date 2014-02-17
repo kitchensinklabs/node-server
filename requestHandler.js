@@ -9,8 +9,12 @@ var http = require('http');
 var os = require('os');
 var url = require('url');
 
-// configure our http server to dump request header to console
+// load the required dependencies
+var fontawesome = require('./fontAwesome');
+
+// configure our http server
 var server = http.createServer(function (request, response) {
+  // If the request came from the load balancer require https
   request_url = url.parse((request.headers["x-forwarded-proto"] ? request.headers["x-forwarded-proto"] : 'http') + "://" + (request.headers.host ? request.headers.host : request.connection.localAddress) + request.url);
   if (!(request.headers["x-forwarded-proto"] !== "http" || request.headers["user-agent"] === "HTTP-Monitor/1.1")) {
     var redirect_url = "https://" + 
@@ -21,6 +25,7 @@ var server = http.createServer(function (request, response) {
     response.writeHead(302, {"Location": redirect_url});
     response.end();
   }
+  // Done with validation. Process request.
   console.log("Processing request (" + (request.headers["x-forwareded-for"] ? request.headers["x-forwareded-for"] : request.connection.remoteAddress) + ") for: " + request_url.href);
   // Health Check Route
   if (request_url.path == "/health_check") {
@@ -42,6 +47,12 @@ var server = http.createServer(function (request, response) {
     writeVanillaHeader(response);
     response.end("About (placeholder)\n"); 
   };
+  var fonts_pattern = "^\/fonts\/.*";
+  var matches = request_url.path.match(fonts_pattern);
+  if ( matches && matches[0] ) {
+    console.log("Dispatching font handler for: " + matches[0]);
+    return fontawesome.handler(response, request_url.path);
+  };
   writeVanillaHeader(response);
   response.end("Hello World\n");
 });
@@ -49,7 +60,7 @@ var server = http.createServer(function (request, response) {
 function writeVanillaHeader(response, content_type) {
   content_type = content_type || "text/plain";
   response.writeHead(200, {"Content-Type": content_type});
-}
+};
 
 // listen on port_dev for development
 server.listen(port_dev);
