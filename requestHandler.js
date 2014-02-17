@@ -1,10 +1,12 @@
 var port_dev = 1337;
 var request_url;
 var health_check_count = 0;
+var hostname;
 
 // load the modules we're using
 var fs = require('fs');
 var http = require('http');
+var os = require('os');
 var url = require('url');
 
 // configure our http server to dump request header to console
@@ -41,4 +43,4 @@ var server = http.createServer(function (request, response) {
 server.listen(port_dev);
 
 // put a friendly message on the console
-console.log("Server running at http://0.0.0.0:"+port_dev+"/");
+console.log("Server running at http://" + os.hostname() + ":"+port_dev+"/");
