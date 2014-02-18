@@ -10,7 +10,10 @@ var os = require('os');
 var url = require('url');
 
 // load the required dependencies
+var _4oh4 = require('./4oh4');
+var css = require('./css');
 var fontawesome = require('./fontAwesome');
+var page = require('./page');
 
 // configure our http server
 var server = http.createServer(function (request, response) {
@@ -27,11 +30,17 @@ var server = http.createServer(function (request, response) {
   }
   // Done with validation. Process request.
   console.log("Processing request (" + (request.headers["x-forwareded-for"] ? request.headers["x-forwareded-for"] : request.connection.remoteAddress) + ") for: " + request_url.href);
+  // Home route
+  if (request_url.path == "/") {
+    console.log("Dispatching page handler for: " + request_url.path);
+    return page.handler(response, request_url.path);
+  };
   // Health Check Route
   if (request_url.path == "/health_check") {
     health_check_count += 1;
     writeVanillaHeader(response);
     response.end("SUCCESS\n");
+    return;
   };
   // Favicon Route
   if (request_url.path == "/favicon.ico") {
@@ -42,19 +51,28 @@ var server = http.createServer(function (request, response) {
     });
     return;
   };
-  // About Route
-  if (request_url.path == "/about") {
-    writeVanillaHeader(response);
-    response.end("About (placeholder)\n"); 
+  // CSS Route
+  var css_pattern = "^\/css\/.*";
+  var matches = request_url.path.match(css_pattern);
+  if ( matches && matches[0] ) {
+    console.log("Dispatching css handler for: " + matches[0]);
+    return css.handler(response, request_url.path);
   };
+  // Fonts Route
   var fonts_pattern = "^\/fonts\/.*";
   var matches = request_url.path.match(fonts_pattern);
   if ( matches && matches[0] ) {
     console.log("Dispatching font handler for: " + matches[0]);
     return fontawesome.handler(response, request_url.path);
   };
-  writeVanillaHeader(response);
-  response.end("Hello World\n");
+  // About Route
+  if (request_url.path == "/about") {
+    writeVanillaHeader(response);
+    response.end("About (placeholder)\n"); 
+    return;
+  };
+  // 4oh4 Route
+  _4oh4.handler(response, request_url.path);
 });
 
 function writeVanillaHeader(response, content_type) {
