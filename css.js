@@ -22,5 +22,6 @@ var cssRequestHandler = function (response, path) {
 };
 
 function getPageWithNavCSS() {
-  return ".page-start {\n padding-top: 55px;\n }\n";
+  return ".page-start {\n  padding-top: 60px;\n}\n" + 
+  ".navbar-brand > img {\n  height: 25px;\n  margin-top: -3px;\n  opacity: 0.5;\n}\n";
 };
